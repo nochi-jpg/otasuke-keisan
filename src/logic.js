@@ -80,6 +80,13 @@
     const P = { formula: `${a}${OPS[op]}${b}`, base: fm.marks, steps: [], fin: [], ans, cls,
       fig0: { A: fill(0), B: fill(0), mk: a }, assist: { type: 'sak', p: { a, op, b, ans, cls }, split: S.split || 'back', sub: S.sub || 'kagen' } };
     const fin = (say, o) => inStep(0, fm.next, ans, Object.assign({ say, final: true }, o || {}));
+    P.ansBox = fin('').box;
+    // さいごの 式の 答え＝式の 答え のときは、もう1回 書かせずに 式へ とばす
+    const copyUp = () => {
+      const l = steps[steps.length - 1], f = fin('');
+      if (!l || l.type !== 'in' || l.exp !== ans) return steps.push(fin('こたえを {式|しき}に かこう', { hl: lastCells(steps) }));
+      l.final = true; l.copy = { from: l.cells, to: f.cells }; l.add = l.add.concat(f.add);
+    };
     const eq = (r, toks, v, say, o) => {
       const e = row(r, toks, F);
       return inStep(r, e.next, v, Object.assign({ say, pre: e.marks }, o || {}));
@@ -117,7 +124,7 @@
         steps.push(eq(4, [a, PL, need, EQ], 10, `${a}＋${need}は？`, { hl: [[0, ca[0]], [2, c - 1]] }));
         steps.push(eq(5, [10, PL, rest, EQ], ans, `10と ${rest}で いくつ？`, { hl: [[2, c + 1]], arc: [10, ans, PL + rest] }));
       }
-      steps.push(fin('こたえを {式|しき}に かこう', { hl: lastCells(steps) }));
+      copyUp();
       return P;
     }
 
@@ -157,7 +164,7 @@
       steps.push(split({ fhl: { A: 'all', seg: [10, a] } }));
       steps.push(eq(4, [u, PL, b, EQ], u + b, `${u}＋${b}は？`, { hl: [[2, c0 + 2], [0, cb[0]]], fhl: { B: 'all' } }));
       steps.push(eq(5, [10, PL, u + b, EQ], ans, `10と ${u + b}で いくつ？`, { hl: [[2, c0 - 1], [2, c0]], arc: [a, ans, PL + b] }));
-      steps.push(fin('こたえを {式|しき}に かこう', { hl: lastCells(steps) }));
+      copyUp();
       return P;
     }
     // ひき算は 10と ばらで ならべる
@@ -175,7 +182,7 @@
         { kind: 'take', from: 'B', n: b, line: [a, ans], lab: MI + b }, [[2, c0 + 2], [0, cb[0]]]));
       steps.push(eq(4, [u, MI, b, EQ], u - b, `${u}−${b}は？`, { hl: [[2, c0 + 2], [0, cb[0]]] }));
       steps.push(eq(5, [10, PL, u - b, EQ], ans, `10と ${u - b}で いくつ？`, { hl: [[2, c0 - 1], [2, c0]] }));
-      steps.push(fin('こたえを {式|しき}に かこう', { hl: lastCells(steps) }));
+      copyUp();
       return P;
     }
     // sub1：くりさがり あり
@@ -199,7 +206,7 @@
       steps.push(eq(4, [10, MI, b, EQ], w, `10−${b}は？`, { hl: [[2, c0 - 1], [2, c0], [0, cb[0]]] }));
       steps.push(eq(5, [w, PL, u, EQ], ans, `${w}と ${u}で いくつ？`, { hl: [...lastCells(steps), [2, c0 + 2]], arc: [w, ans, PL + u] }));
     }
-    steps.push(fin('こたえを {式|しき}に かこう', { hl: lastCells(steps) }));
+    copyUp();
     return P;
   }
   function move(say, mv, hl) { return { type: 'move', say, mv, hl: hl || [] }; }

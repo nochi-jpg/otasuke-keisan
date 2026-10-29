@@ -67,12 +67,12 @@
   // ---- かく ----
   function render(o) {
     o = o || {};
-    const nw = o.nw || new Set();
+    const nw = o.nw || new Set(), late = o.late || new Set();
     const marks = solving() ? marksAt(st.idx, !st.post) : new Map();
     let h = '', lines = '';
     for (const m of marks.values()) {
       if (m.k === 'sak') { lines += sakSvg(m, nw.has(m.id)); continue; }
-      const cls = 'mk ' + m.k + (m.u ? ' u' : '') + (m.cl ? ' ' + m.cl : '') + (nw.has(m.id) ? ' nw' : '');
+      const cls = 'mk ' + m.k + (m.u ? ' u' : '') + (m.cl ? ' ' + m.cl : '') + (nw.has(m.id) ? ' nw' : '') + (late.has(m.id) ? ' late' : '');
       h += `<div class="${cls}" style="left:${m.c * C}px;top:${m.r * C}px">${m.t}</div>`;
     }
     $('markL').innerHTML = h;
@@ -353,9 +353,13 @@
     st.post = true;
     st.msg = revealed ? (s.type === 'in' ? `こたえは ${s.exp}だよ` : 'こう なるよ') : pick(['せいかい！', 'いいね！', 'そのとおり！', 'ばっちり！']);
     if (!revealed && s.type === 'move' && s.mv.line[1] === 10 && s.mv.kind === 'move') st.msg = '10が できたね！';
+    // さいごの 式の 答えを、上の 式へ とばす（2回 書かせない）
+    const late = new Set();
+    if (s.copy) { (s.add || []).forEach(m => { if (m.r === 0) late.add(m.id); }); st.msg += '<br>{式|しき}にも かいたよ'; }
     st.idx++; st.inp = '';
-    render({ nw: new Set((s.add || []).map(m => m.id)), arcNew: !!(s.mv || s.arc), tapNew: true });
-    st.timer = setTimeout(afterCorrect, revealed ? 1500 : 900);
+    render({ nw: new Set((s.add || []).map(m => m.id)), late, arcNew: !!(s.mv || s.arc), tapNew: true });
+    if (s.copy) s.copy.from.forEach(([r, c], i) => fly([r, c], s.copy.to[i], String(s.exp)[i]));
+    st.timer = setTimeout(afterCorrect, s.copy ? 1700 : revealed ? 1500 : 900);
   }
   function afterCorrect() {
     clearTimeout(st.timer); st.timer = null;
@@ -490,7 +494,7 @@
       <div class="opt"><div class="lbl">ひき{算|ざん}の やりかた</div>${seg('sub', [['kagen', '10から ひく'], ['gengen', 'ひく{数|かず}を わける']])}</div>
       <div class="opt"><div class="lbl">こうかおん</div>${seg('sound', [[true, 'あり'], [false, 'なし']])}</div>
       <div class="row" style="margin-top:28px"><button class="gb g-green" data-m="close">とじる</button><button class="gb g-gray" data-m="title">タイトルへ</button></div>
-      <div class="credit">おたすけ{計算|けいさん} ver ${VER}　つくった{人|ひと}：のち（まなび堂）</div>`, a => {
+      <div class="credit">おたすけ{計算|けいさん} ver ${VER}　つくった{人|ひと}：K.nomura</div>`, a => {
       if (a === 'title') { se('pop'); modal(`<h2>タイトルに もどる？</h2><p>いまの けいさんは きえるよ</p><div class="row"><button class="gb g-orange" data-m="yes">もどる</button><button class="gb g-gray" data-m="no">やめる</button></div>`, x => { if (x === 'yes') showHome('mode'); }); }
     });
   }
@@ -621,6 +625,14 @@
   }
 
   // ---- うごき ----
+  function fly(from, to, t) {
+    const el = document.createElement('div');
+    el.className = 'fly dn'; el.textContent = t;
+    el.style.left = from[1] * C + 'px'; el.style.top = from[0] * C + 'px';
+    $('flyL').appendChild(el);
+    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transform = `translate(${(to[1] - from[1]) * C}px,${(to[0] - from[0]) * C}px)`; }));
+    setTimeout(() => el.remove(), 700);
+  }
   function anim(cls, ms) {
     const el = $('charaW'); el.classList.remove('hop', 'shake', 'jump'); void el.offsetWidth; el.classList.add(cls);
     clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove(cls), ms);
@@ -628,7 +640,7 @@
   const hopChara = () => anim('hop', 600), shakeChara = () => anim('shake', 550), jumpChara = () => anim('jump', 1200);
 
   function hanamaru() {
-    const b = st.plan.steps[st.plan.steps.length - 1].box;
+    const b = st.plan.ansBox;
     const c1 = b.c - b.w + 1, c2 = b.c, r = b.r;
     const cx = (c1 + c2 + 1) / 2 * C, cy = (r + .5) * C;
     const rx = (c2 - c1 + 1) * C / 2 + 18, ry = C / 2 + 8;

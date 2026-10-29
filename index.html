@@ -276,6 +276,8 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
 .hBtns .gb .mt{display:block;white-space:nowrap}
 .lband{fill:rgba(255,255,255,.88)}
 .opt .seg .gb{white-space:nowrap;letter-spacing:0}
+#flyL{pointer-events:none;z-index:6}
+.fly.dn{color:var(--kid)}
 </style>
 </head>
 <body>
@@ -304,6 +306,7 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
     <div id="markL"></div>
     <div id="figL"></div>
     <div id="boxL"></div>
+    <div id="flyL"></div>
     <svg id="fxL"></svg>
   </div>
 
@@ -331,7 +334,7 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
     <div class="hBtns" id="hBtns"></div>
     <button class="gb g-gray" id="hBack"><svg viewBox="0 0 32 32"><path d="M19 7 10 16l9 9" /></svg>もどる</button>
     <img class="hChara" src="data:image/png;base64,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" alt="">
-    <div class="hCredit">つくった<ruby>人<rt>ひと</rt></ruby>：のち（まなび堂）</div>
+    <div class="hCredit">つくった<ruby>人<rt>ひと</rt></ruby>：K.nomura</div>
   </div>
 
   <div id="modal" hidden><div class="card" id="mCard"></div></div>
@@ -420,6 +423,13 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
     const P = { formula: `${a}${OPS[op]}${b}`, base: fm.marks, steps: [], fin: [], ans, cls,
       fig0: { A: fill(0), B: fill(0), mk: a }, assist: { type: 'sak', p: { a, op, b, ans, cls }, split: S.split || 'back', sub: S.sub || 'kagen' } };
     const fin = (say, o) => inStep(0, fm.next, ans, Object.assign({ say, final: true }, o || {}));
+    P.ansBox = fin('').box;
+    // さいごの 式の 答え＝式の 答え のときは、もう1回 書かせずに 式へ とばす
+    const copyUp = () => {
+      const l = steps[steps.length - 1], f = fin('');
+      if (!l || l.type !== 'in' || l.exp !== ans) return steps.push(fin('こたえを {式|しき}に かこう', { hl: lastCells(steps) }));
+      l.final = true; l.copy = { from: l.cells, to: f.cells }; l.add = l.add.concat(f.add);
+    };
     const eq = (r, toks, v, say, o) => {
       const e = row(r, toks, F);
       return inStep(r, e.next, v, Object.assign({ say, pre: e.marks }, o || {}));
@@ -457,7 +467,7 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
         steps.push(eq(4, [a, PL, need, EQ], 10, `${a}＋${need}は？`, { hl: [[0, ca[0]], [2, c - 1]] }));
         steps.push(eq(5, [10, PL, rest, EQ], ans, `10と ${rest}で いくつ？`, { hl: [[2, c + 1]], arc: [10, ans, PL + rest] }));
       }
-      steps.push(fin('こたえを {式|しき}に かこう', { hl: lastCells(steps) }));
+      copyUp();
       return P;
     }
 
@@ -497,7 +507,7 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
       steps.push(split({ fhl: { A: 'all', seg: [10, a] } }));
       steps.push(eq(4, [u, PL, b, EQ], u + b, `${u}＋${b}は？`, { hl: [[2, c0 + 2], [0, cb[0]]], fhl: { B: 'all' } }));
       steps.push(eq(5, [10, PL, u + b, EQ], ans, `10と ${u + b}で いくつ？`, { hl: [[2, c0 - 1], [2, c0]], arc: [a, ans, PL + b] }));
-      steps.push(fin('こたえを {式|しき}に かこう', { hl: lastCells(steps) }));
+      copyUp();
       return P;
     }
     // ひき算は 10と ばらで ならべる
@@ -515,7 +525,7 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
         { kind: 'take', from: 'B', n: b, line: [a, ans], lab: MI + b }, [[2, c0 + 2], [0, cb[0]]]));
       steps.push(eq(4, [u, MI, b, EQ], u - b, `${u}−${b}は？`, { hl: [[2, c0 + 2], [0, cb[0]]] }));
       steps.push(eq(5, [10, PL, u - b, EQ], ans, `10と ${u - b}で いくつ？`, { hl: [[2, c0 - 1], [2, c0]] }));
-      steps.push(fin('こたえを {式|しき}に かこう', { hl: lastCells(steps) }));
+      copyUp();
       return P;
     }
     // sub1：くりさがり あり
@@ -539,7 +549,7 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
       steps.push(eq(4, [10, MI, b, EQ], w, `10−${b}は？`, { hl: [[2, c0 - 1], [2, c0], [0, cb[0]]] }));
       steps.push(eq(5, [w, PL, u, EQ], ans, `${w}と ${u}で いくつ？`, { hl: [...lastCells(steps), [2, c0 + 2]], arc: [w, ans, PL + u] }));
     }
-    steps.push(fin('こたえを {式|しき}に かこう', { hl: lastCells(steps) }));
+    copyUp();
     return P;
   }
   function move(say, mv, hl) { return { type: 'move', say, mv, hl: hl || [] }; }
@@ -619,12 +629,12 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
   // ---- かく ----
   function render(o) {
     o = o || {};
-    const nw = o.nw || new Set();
+    const nw = o.nw || new Set(), late = o.late || new Set();
     const marks = solving() ? marksAt(st.idx, !st.post) : new Map();
     let h = '', lines = '';
     for (const m of marks.values()) {
       if (m.k === 'sak') { lines += sakSvg(m, nw.has(m.id)); continue; }
-      const cls = 'mk ' + m.k + (m.u ? ' u' : '') + (m.cl ? ' ' + m.cl : '') + (nw.has(m.id) ? ' nw' : '');
+      const cls = 'mk ' + m.k + (m.u ? ' u' : '') + (m.cl ? ' ' + m.cl : '') + (nw.has(m.id) ? ' nw' : '') + (late.has(m.id) ? ' late' : '');
       h += `<div class="${cls}" style="left:${m.c * C}px;top:${m.r * C}px">${m.t}</div>`;
     }
     $('markL').innerHTML = h;
@@ -905,9 +915,13 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
     st.post = true;
     st.msg = revealed ? (s.type === 'in' ? `こたえは ${s.exp}だよ` : 'こう なるよ') : pick(['せいかい！', 'いいね！', 'そのとおり！', 'ばっちり！']);
     if (!revealed && s.type === 'move' && s.mv.line[1] === 10 && s.mv.kind === 'move') st.msg = '10が できたね！';
+    // さいごの 式の 答えを、上の 式へ とばす（2回 書かせない）
+    const late = new Set();
+    if (s.copy) { (s.add || []).forEach(m => { if (m.r === 0) late.add(m.id); }); st.msg += '<br>{式|しき}にも かいたよ'; }
     st.idx++; st.inp = '';
-    render({ nw: new Set((s.add || []).map(m => m.id)), arcNew: !!(s.mv || s.arc), tapNew: true });
-    st.timer = setTimeout(afterCorrect, revealed ? 1500 : 900);
+    render({ nw: new Set((s.add || []).map(m => m.id)), late, arcNew: !!(s.mv || s.arc), tapNew: true });
+    if (s.copy) s.copy.from.forEach(([r, c], i) => fly([r, c], s.copy.to[i], String(s.exp)[i]));
+    st.timer = setTimeout(afterCorrect, s.copy ? 1700 : revealed ? 1500 : 900);
   }
   function afterCorrect() {
     clearTimeout(st.timer); st.timer = null;
@@ -1042,7 +1056,7 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
       <div class="opt"><div class="lbl">ひき{算|ざん}の やりかた</div>${seg('sub', [['kagen', '10から ひく'], ['gengen', 'ひく{数|かず}を わける']])}</div>
       <div class="opt"><div class="lbl">こうかおん</div>${seg('sound', [[true, 'あり'], [false, 'なし']])}</div>
       <div class="row" style="margin-top:28px"><button class="gb g-green" data-m="close">とじる</button><button class="gb g-gray" data-m="title">タイトルへ</button></div>
-      <div class="credit">おたすけ{計算|けいさん} ver ${VER}　つくった{人|ひと}：のち（まなび堂）</div>`, a => {
+      <div class="credit">おたすけ{計算|けいさん} ver ${VER}　つくった{人|ひと}：K.nomura</div>`, a => {
       if (a === 'title') { se('pop'); modal(`<h2>タイトルに もどる？</h2><p>いまの けいさんは きえるよ</p><div class="row"><button class="gb g-orange" data-m="yes">もどる</button><button class="gb g-gray" data-m="no">やめる</button></div>`, x => { if (x === 'yes') showHome('mode'); }); }
     });
   }
@@ -1173,6 +1187,14 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
   }
 
   // ---- うごき ----
+  function fly(from, to, t) {
+    const el = document.createElement('div');
+    el.className = 'fly dn'; el.textContent = t;
+    el.style.left = from[1] * C + 'px'; el.style.top = from[0] * C + 'px';
+    $('flyL').appendChild(el);
+    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transform = `translate(${(to[1] - from[1]) * C}px,${(to[0] - from[0]) * C}px)`; }));
+    setTimeout(() => el.remove(), 700);
+  }
   function anim(cls, ms) {
     const el = $('charaW'); el.classList.remove('hop', 'shake', 'jump'); void el.offsetWidth; el.classList.add(cls);
     clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove(cls), ms);
@@ -1180,7 +1202,7 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
   const hopChara = () => anim('hop', 600), shakeChara = () => anim('shake', 550), jumpChara = () => anim('jump', 1200);
 
   function hanamaru() {
-    const b = st.plan.steps[st.plan.steps.length - 1].box;
+    const b = st.plan.ansBox;
     const c1 = b.c - b.w + 1, c2 = b.c, r = b.r;
     const cx = (c1 + c2 + 1) / 2 * C, cy = (r + .5) * C;
     const rx = (c2 - c1 + 1) * C / 2 + 18, ry = C / 2 + 8;

@@ -271,3 +271,4 @@ ruby rt{font-size:.36em;letter-spacing:0;font-weight:700}
 .opt .seg .gb{white-space:nowrap;letter-spacing:0}
 #flyL{pointer-events:none;z-index:6}
 .fly.dn{color:var(--kid)}
+#tabs .gb[hidden]{display:none}

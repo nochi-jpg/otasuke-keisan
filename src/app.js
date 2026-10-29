@@ -19,7 +19,7 @@
   }
 
   // ---- せってい・じょうたい ----
-  const S = { split: 'back', sub: 'kagen', sound: true, view: 'blk' };
+  const S = { split: 'back', sub: 'kagen', sound: true, view: 'blk', pref: 'blk' }; // pref＝子どもが えらんだ 図
   // mode：'help'（問題おたすけ）／'chal'（問題挑戦）　lv：'many'／'some'／'none'
   const G = { mode: null, kind: null, lv: 'many', queue: [], qi: 0, score: 0, res: [] };
   const st = { phase: 'home', f: '', fmsg: null, prob: null, plan: null, idx: 0, inp: '', post: false, msg: null, timer: null, taps: {}, ct: [], rvFinal: false, scored: null };
@@ -157,7 +157,7 @@
     o = o || {};
     const show = solving() && G.lv === 'many';
     $('tabs').hidden = !show;
-    document.querySelectorAll('#tabs .gb').forEach(b => b.classList.toggle('on', b.dataset.v === S.view));
+    document.querySelectorAll('#tabs .gb').forEach(b => { b.classList.toggle('on', b.dataset.v === S.view); if (b.dataset.v === 'sak') b.hidden = !st.hasSak; });
     const L = $('figL');
     if (!show || S.view === 'sak') { L.innerHTML = ''; return; }
     const s = cur(), act = st.phase === 'solve' && s && !st.post;
@@ -223,7 +223,7 @@
   });
   $('tabs').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b || b.dataset.v === S.view) return;
-    se('btn'); S.view = b.dataset.v; st.ct = []; st.msg = null; render();
+    se('btn'); S.view = S.pref = b.dataset.v; st.ct = []; st.msg = null; render();
   });
 
   // ---- ふきだし ----
@@ -335,6 +335,9 @@
   function startPlan(p) {
     clearTimeout(st.timer); st.timer = null; closeAssist(); hideEnd(); $('fxL').innerHTML = '';
     Object.assign(st, { prob: p, plan: K.build(p, S, G.lv), phase: 'solve', idx: 0, inp: '', msg: null, post: false, fmsg: null, f: '', taps: {}, ct: [], scored: null });
+    // さくらんぼを つかわない 問題（3＋4・10＋3・7−3 など）は さくらんぼボタンを けす
+    st.hasSak = st.plan.steps.some(x => (x.pre || []).some(m => m.k === 'sak'));
+    S.view = S.pref === 'sak' && !st.hasSak ? 'blk' : S.pref;
     se('pop');
     const nw = new Set(st.plan.base.map(m => m.id)); (cur().pre || []).forEach(m => nw.add(m.id));
     render({ nw });

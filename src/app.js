@@ -487,7 +487,7 @@
     const seg = (k, opts) => `<div class="seg">${opts.map(([v, t]) => `<button class="gb g-cyan ${String(S[k]) === String(v) ? 'on' : ''}" data-o="${k}:${v}">${t}</button>`).join('')}</div>`;
     modal(`<h2>せってい</h2>
       <div class="opt"><div class="lbl">たし{算|ざん}で わける {数|かず}</div>${seg('split', [['back', 'うしろの {数|かず}'], ['front', 'まえの {数|かず}']])}</div>
-      <div class="opt"><div class="lbl">ひき{算|ざん}の やりかた</div>${seg('sub', [['kagen', '10から ひく'], ['gengen', '2かいに わけて ひく']])}</div>
+      <div class="opt"><div class="lbl">ひき{算|ざん}の やりかた</div>${seg('sub', [['kagen', '10から ひく'], ['gengen', 'ひく{数|かず}を わける']])}</div>
       <div class="opt"><div class="lbl">こうかおん</div>${seg('sound', [[true, 'あり'], [false, 'なし']])}</div>
       <div class="row" style="margin-top:28px"><button class="gb g-green" data-m="close">とじる</button><button class="gb g-gray" data-m="title">タイトルへ</button></div>
       <div class="credit">おたすけ{計算|けいさん} ver ${VER}　つくった{人|ひと}：のち（まなび堂）</div>`, a => {

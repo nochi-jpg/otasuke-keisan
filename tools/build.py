@@ -15,7 +15,7 @@ def build(page, outs):
     for out in outs:
         out = os.path.join(R, out)
         os.makedirs(os.path.dirname(out), exist_ok=True)
-        h = html  # 作者名は どちらの版も K.nomura
+        h = html  # 作者名は どちらの版も K.nom
         open(out, 'w', encoding='utf-8').write(h)
         print(os.path.relpath(out, R), f'{os.path.getsize(out)/1024:.0f}KB')
 

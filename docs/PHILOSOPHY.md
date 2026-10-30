@@ -82,8 +82,8 @@
 - **学校のネットワーク**：渋谷区の i-フィルターで GitHub は開けないので、学校では Canva のホームページ版で配る。
 - **1つの HTML ファイルで動く。** 画像も音も中に入れる（Canva 版は 10MB 以下）。外部への通信はしない。
 - **配る版は2つ**：
-  - **GitHub 版**：GitHub Pages で公開する。作者名は「K.nomura」。
-  - **Canva 版**：`dist/*-canva.html`。作者名は「K.nomura」（どちらの版も同じ）。
+  - **GitHub 版**：GitHub Pages で公開する。作者名は「K.nom」。
+  - **Canva 版**：`dist/*-canva.html`。作者名は「K.nom」（どちらの版も同じ）。
 - **セーブはしない**（その場で使うアプリ）。
 
 ## 7. 作り方のきまり

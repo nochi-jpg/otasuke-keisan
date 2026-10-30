@@ -497,7 +497,7 @@
       <div class="opt"><div class="lbl">ひき{算|ざん}の やりかた</div>${seg('sub', [['kagen', '10から ひく'], ['gengen', 'ひく{数|かず}を わける']])}</div>
       <div class="opt"><div class="lbl">こうかおん</div>${seg('sound', [[true, 'あり'], [false, 'なし']])}</div>
       <div class="row" style="margin-top:28px"><button class="gb g-green" data-m="close">とじる</button><button class="gb g-gray" data-m="title">タイトルへ</button></div>
-      <div class="credit">おたすけ{計算|けいさん} ver ${VER}　つくった{人|ひと}：K.nomura</div>`, a => {
+      <div class="credit">おたすけ{計算|けいさん} ver ${VER}　つくった{人|ひと}：K.nom</div>`, a => {
       if (a === 'title') { se('pop'); modal(`<h2>タイトルに もどる？</h2><p>いまの けいさんは きえるよ</p><div class="row"><button class="gb g-orange" data-m="yes">もどる</button><button class="gb g-gray" data-m="no">やめる</button></div>`, x => { if (x === 'yes') showHome('mode'); }); }
     });
   }

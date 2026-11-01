@@ -19,9 +19,9 @@
   }
 
   // ---- せってい・じょうたい ----
-  const S = { split: 'back', sub: 'kagen', sound: true, view: 'blk', pref: 'blk' }; // pref＝子どもが えらんだ 図
+  const S = { split: 'back', sub: 'kagen', big: 'place', sound: true, view: 'blk', pref: 'blk' }; // pref＝子どもが えらんだ 図
   // mode：'help'（問題おたすけ）／'chal'（問題挑戦）　lv：'many'／'some'／'none'
-  const G = { mode: null, kind: null, lv: 'many', queue: [], qi: 0, score: 0, res: [] };
+  const G = { mode: null, size: '20', kind: null, lv: 'many', queue: [], qi: 0, score: 0, res: [] };
   const st = { phase: 'home', f: '', fmsg: null, prob: null, plan: null, idx: 0, inp: '', post: false, msg: null, timer: null, taps: {}, ct: [], rvFinal: false, scored: null };
   const cur = () => (st.plan && st.idx < st.plan.steps.length ? st.plan.steps[st.idx] : null);
   const SYM = { '+': '＋', '-': '−' };
@@ -98,7 +98,7 @@
     const x0 = m.x0 * C, y0 = C + 6, cls = isNew ? ' class="dr"' : '';
     let s = '';
     m.rings.forEach(([c1, c2], i) => {
-      const cx = (c1 + c2 + 1) / 2 * C, rx = (c2 - c1 + 1) * C / 2 + 1, ry = C / 2 - 2, cy = 2.5 * C;
+      const cx = (c1 + c2 + 1) / 2 * C, rx = (c2 - c1 + 1) * C / 2 - 1, ry = C / 2 - 3, cy = ((m.rr || 2) + .5) * C;
       s += `<line${cls} style="animation-delay:${i * .12}s" x1="${x0}" y1="${y0}" x2="${cx}" y2="${cy - ry}" stroke="#1c2233" stroke-width="3" stroke-linecap="round"/>`;
       s += `<ellipse${isNew ? ' class="pp"' : ''} cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="#e03131" stroke-width="3.2"/>`;
     });
@@ -142,11 +142,14 @@
   }
   // k番目の 手順の ときの 図
   function figAt(k, withCur) {
-    const P = st.plan, f = { A: P.fig0.A.slice(), B: P.fig0.B.slice(), arcs: [], mk: P.fig0.mk, nwA: [] };
+    const P = st.plan, f = { A: P.fig0.A.slice(), B: P.fig0.B.slice(), arcs: [], mk: P.big ? P.mk0 : P.fig0.mk, nwA: [] };
+    f.R = P.big ? (Math.max(st.prob.a, P.ans) > 100 ? 200 : 100) : 20;
+    if (P.big) f.bf = k < P.steps.length ? P.steps[k].bf : P.bfEnd;
     for (let j = 0; j < k && j < P.steps.length; j++) {
       const s = P.steps[j];
       if (s.mv) { applyMv(f, s.mv, st.taps[j]); f.arcs.push([s.mv.line[0], s.mv.line[1], s.mv.lab]); }
       if (s.arc) f.arcs.push(s.arc);
+      if (s.arcs) f.arcs.push(...s.arcs);
     }
     if (withCur && st.ct.length) f.nwA = applyMv(f, P.steps[k].mv, st.ct);
     if (st.phase === 'done' && P.steps.length) { const l = P.steps[P.steps.length - 1]; if (l.arc && !f.arcs.includes(l.arc)) f.arcs.push(l.arc); }
@@ -164,7 +167,8 @@
     const mv = act && s.type === 'move' ? s.mv : null;
     const f = figAt(st.idx, !!mv);
     const fhl = act ? (s.fhl || {}) : {};
-    L.innerHTML = S.view === 'blk' ? blkHtml(f, fhl, mv, o.tapNew) : lineHtml(f, fhl, mv, o.arcNew);
+    if (st.plan.big) L.innerHTML = S.view === 'blk' ? bigBlk(f.bf, act) : lineHtml(f, {}, null, o.arcNew);
+    else L.innerHTML = S.view === 'blk' ? blkHtml(f, fhl, mv, o.tapNew) : lineHtml(f, fhl, mv, o.arcNew);
   }
   function blkHtml(f, hl, mv, tapNew) {
     let h = '';
@@ -183,26 +187,45 @@
     });
     return h;
   }
-  const LX = v => 56 + v * 44.8, LY = 9.5 * C;
+  // 2けた：10の ぼうと ばら（ぼう＝ばら10こ）
+  function bigBlk(bf, act) {
+    const top = 7 * C + 14, RG = 36, UG = 32, hl = act ? bf.hl : [];
+    let h = '', x = 34;
+    bf.g.forEach((g, gi) => {
+      const nR = g.rods.length, nU = g.units.length, cols = Math.ceil(nU / 5);
+      if (hl.includes(gi + 'r') && nR) h += `<div class="bhl2" style="left:${x - 7}px;top:${top - 7}px;width:${nR * RG + 8}px;height:${10 * 22 + 14}px"></div>`;
+      g.rods.forEach((v, i) => { h += `<div class="rod ${g.c}${v === 'x' ? ' x' : ''}" style="left:${x + i * RG}px;top:${top}px"></div>`; });
+      x += nR * RG + (nR ? 16 : 0);
+      const uy = top + 10 * 22 - 5 * UG + 4;
+      if (hl.includes(gi + 'u') && nU) h += `<div class="bhl2" style="left:${x - 7}px;top:${uy - 7}px;width:${cols * UG + 10}px;height:${5 * UG + 10}px"></div>`;
+      g.units.forEach((v, i) => { h += `<div class="unit ${g.c}${v === 'x' ? ' x' : ''}" style="left:${x + Math.floor(i / 5) * UG}px;top:${uy + (i % 5) * UG}px"></div>`; });
+      x += cols * UG + 56;
+    });
+    return h;
+  }
+  const LY = 9.5 * C;
   function lineHtml(f, hl, mv, arcNew) {
-    const INK = '#1c2233';
+    const INK = '#1c2233', R = f.R || 20, LX = v => 56 + v * 896 / R;
     let s = `<svg class="lsv" width="1008" height="672"><defs><marker id="la" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="${INK}"/></marker></defs>`;
     s += `<rect class="lband" x="2" y="${7 * C + 2}" width="${K.COLS * C - 4}" height="${4 * C - 4}"/>`;
-    if (hl.seg) { const [x, y] = hl.seg; s += `<rect x="${LX(Math.min(x, y)) - 6}" y="${LY - 18}" width="${Math.abs(y - x) * 44.8 + 12}" height="36" rx="10" fill="rgba(255,226,0,.6)"/>`; }
-    s += `<line x1="${LX(0) - 24}" y1="${LY}" x2="${LX(20) + 24}" y2="${LY}" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;
-    for (let v = 0; v <= 20; v++) {
-      const big = v % 10 === 0, mid = v % 5 === 0, len = big ? 22 : mid ? 16 : 10, col = v === 10 ? '#2b8a3e' : INK;
-      s += `<line x1="${LX(v)}" y1="${LY - len}" x2="${LX(v)}" y2="${LY + len}" stroke="${col}" stroke-width="${big ? 4 : 2.5}"/>`;
-      s += `<text x="${LX(v)}" y="${LY + 56}" font-size="${v === 10 ? 30 : 26}" text-anchor="middle" fill="${col}">${v}</text>`;
+    if (hl.seg) { const [x, y] = hl.seg; s += `<rect x="${LX(Math.min(x, y)) - 6}" y="${LY - 18}" width="${LX(Math.abs(y - x)) - LX(0) + 12}" height="36" rx="10" fill="rgba(255,226,0,.6)"/>`; }
+    s += `<line x1="${LX(0) - 24}" y1="${LY}" x2="${LX(R) + 24}" y2="${LY}" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;
+    // 目もり：20まで＝1ずつ、100まで＝10ごとに 数、200まで＝20ごとに 数
+    const step = R === 200 ? 5 : 1, lab = R === 20 ? 1 : R === 100 ? 10 : 20;
+    for (let v = 0; v <= R; v += step) {
+      const ten = R === 20 ? v % 10 === 0 : v % lab === 0, mid = R === 20 ? v % 5 === 0 : v % 10 === 0 || (R === 100 && v % 5 === 0);
+      const len = ten ? 22 : mid ? (R === 20 ? 16 : 12) : (R === 20 ? 10 : 6), col = (R === 20 && v === 10) || (R > 20 && v === 100) ? '#2b8a3e' : INK;
+      s += `<line x1="${LX(v)}" y1="${LY - len}" x2="${LX(v)}" y2="${LY + len}" stroke="${col}" stroke-width="${ten ? 4 : R === 20 ? 2.5 : 1.6}"/>`;
+      if (v % lab === 0) s += `<text x="${LX(v)}" y="${LY + 56}" font-size="${col !== INK ? 30 : 26}" text-anchor="middle" fill="${col}">${v}</text>`;
     }
     f.arcs.forEach(([a, b, lab], i) => {
-      const x1 = LX(a), x2 = LX(b), hgt = Math.min(130, 40 + Math.abs(b - a) * 9), y = LY - 10, mx = (x1 + x2) / 2;
+      const x1 = LX(a), x2 = LX(b), hgt = Math.min(130, 40 + Math.abs(b - a) * 180 / R), y = LY - 10, mx = (x1 + x2) / 2;
       const nw = arcNew && i === f.arcs.length - 1;
       s += `<path${nw ? ' class="dr"' : ''} d="M${x1} ${y} Q${mx} ${y - hgt * 2} ${x2 + (b > a ? -3 : 3)} ${y - 2}" fill="none" stroke="${INK}" stroke-width="3.5" marker-end="url(#la)" pathLength="300"/>`;
       s += `<text${nw ? ' class="st"' : ''} x="${mx}" y="${y - hgt - 12}" font-size="30" text-anchor="middle" fill="${INK}">${lab}</text>`;
     });
     s += `<circle cx="${LX(f.mk)}" cy="${LY}" r="12" fill="#183a8c" stroke="#fff" stroke-width="3"/>`;
-    if (mv) for (let v = 0; v <= 20; v++) s += `<rect class="tk" data-v="${v}" x="${LX(v) - 22}" y="${LY - 60}" width="44" height="130" fill="transparent"/><circle class="tc" cx="${LX(v)}" cy="${LY}" r="19" fill="transparent" stroke="#ff3b3b" stroke-width="3" stroke-dasharray="5 4" pointer-events="none"/>`;
+    if (mv && R === 20) for (let v = 0; v <= 20; v++) s += `<rect class="tk" data-v="${v}" x="${LX(v) - 22}" y="${LY - 60}" width="44" height="130" fill="transparent"/><circle class="tc" cx="${LX(v)}" cy="${LY}" r="19" fill="transparent" stroke="#ff3b3b" stroke-width="3" stroke-dasharray="5 4" pointer-events="none"/>`;
     return s + '</svg>';
   }
   $('figL').addEventListener('click', e => {
@@ -238,7 +261,7 @@
     let html = '', btns = '';
     const s = cur();
     if (st.phase === 'formula') {
-      html = st.fmsg ? `<div class="ng">${rb(st.fmsg)}</div>` : rb('{赤|あか}い わくに {式|しき}を {入|い}れよう<div class="sub">れい：8＋5、13−9</div>');
+      html = st.fmsg ? `<div class="ng">${rb(st.fmsg)}</div>` : rb('{赤|あか}い わくに {式|しき}を {入|い}れよう<div class="sub">れい：8＋5、38＋25、63−27</div>');
       if (!st.fmsg && st.f) html = rb('{入|い}れたら<br>「けってい」を おそう');
     } else if (st.phase === 'done') {
       html = `<div class="ok">${rb(st.msg || '')}</div>`;
@@ -388,6 +411,9 @@
     if (w.k === 'split') return v >= w.n ? `${w.n}より {大|おお}きく なるよ` : `${w.k1}と ${v}で ${w.k1 + v}。${w.n}に ならないよ`;
     if (w.k === 'from10') return v > w.t ? `${w.t}より {大|おお}きいよ` : `${w.t}−${v}＝${w.t - v}で、10に ならないよ`;
     if (w.k === 'teen') return `10と ${v}で ${10 + v}。${w.t}に ならないよ`;
+    if (w.k === 'tens') return v % 10 ? '「なんじゅう」は 10、20、30…の ことだよ' : v > w.n ? `${w.n}より {大|おお}きいよ` : `${v}だと のこりが ${w.n - v}で、10より {大|おお}きいよ`;
+    if (w.k === 'toT') return `${w.a}＋${v}＝${w.a + v}で、${w.t}${w.a + v > w.t ? 'を こえるよ' : 'に たりないよ'}`;
+    if (w.k === 'fromT') return v > w.t ? `${w.t}より {大|おお}きいよ` : `${w.t}−${v}＝${w.t - v}で、${w.T}に ならないよ`;
     return null;
   }
   function nextMoveInfo() {
@@ -486,7 +512,7 @@
       se('tap'); const [k, v] = b.dataset.o.split(':'); const was = S[k];
       S[k] = v === 'true' ? true : v === 'false' ? false : v;
       // わけかたを かえたら、いまの 問題を はじめから
-      if ((k === 'split' || k === 'sub') && was !== S[k] && st.phase === 'solve' && G.lv === 'many') { const rv = st.rvFinal; startPlan(st.prob); st.rvFinal = rv; }
+      if ((k === 'split' || k === 'sub' || k === 'big') && was !== S[k] && st.phase === 'solve' && G.lv === 'many') { const rv = st.rvFinal; startPlan(st.prob); st.rvFinal = rv; }
       openSettings();
     }
   });
@@ -495,6 +521,7 @@
     modal(`<h2>せってい</h2>
       <div class="opt"><div class="lbl">たし{算|ざん}で わける {数|かず}</div>${seg('split', [['back', 'うしろの {数|かず}'], ['front', 'まえの {数|かず}']])}</div>
       <div class="opt"><div class="lbl">ひき{算|ざん}の やりかた</div>${seg('sub', [['kagen', '10から ひく'], ['gengen', 'ひく{数|かず}を わける']])}</div>
+      <div class="opt"><div class="lbl">2けたの けいさん</div>${seg('big', [['place', '10と ばらに わける'], ['make', 'なんじゅうを つくる']])}</div>
       <div class="opt"><div class="lbl">こうかおん</div>${seg('sound', [[true, 'あり'], [false, 'なし']])}</div>
       <div class="row" style="margin-top:28px"><button class="gb g-green" data-m="close">とじる</button><button class="gb g-gray" data-m="title">タイトルへ</button></div>
       <div class="credit">おたすけ{計算|けいさん} ver ${VER}　つくった{人|ひと}：K.nom</div>`, a => {
@@ -514,7 +541,7 @@
       a => { if (a === 'again') startChal(); else if (a === 'kind') showHome('kind'); else showHome('mode'); }, true);
   }
   function startChal() {
-    Object.assign(G, { queue: shuffle(K.list(G.kind)).slice(0, 10), qi: 0, score: 0, res: [] });
+    Object.assign(G, { queue: shuffle(K.list(G.kind, G.size)).slice(0, 10), qi: 0, score: 0, res: [] });
     $('home').hidden = true; startProblem();
   }
 
@@ -531,8 +558,13 @@
       B.className = 'hBtns c1';
       B.innerHTML = `<button class="gb g-orange" data-h="help"><span class="mt">{問題|もんだい}おたすけモード</span><small>じぶんで {式|しき}を {入|い}れて とく</small></button>
         <button class="gb g-cyan" data-h="chal"><span class="mt">{問題|もんだい}{挑戦|ちょうせん}モード</span><small>10もん ちょうせん！ なんてん とれるかな</small></button>`;
+    } else if (page === 'size') {
+      $('hQ').innerHTML = rb('どの {大|おお}きさの {数|かず}で やる？');
+      B.className = 'hBtns c1';
+      B.innerHTML = `<button class="gb g-green" data-h="s:20"><span class="mt">20までの {数|かず}</span><small>れい：8＋5、13−9</small></button>
+        <button class="gb g-pink" data-h="s:99"><span class="mt">99までの {数|かず}</span><small>れい：38＋25、63−27</small></button>`;
     } else if (page === 'kind') {
-      $('hQ').innerHTML = rb('どの {問題|もんだい}に する？');
+      $('hQ').innerHTML = rb(`どの {問題|もんだい}に する？（${G.size}までの {数|かず}）`);
       B.className = 'hBtns c2';
       B.innerHTML = KINDS.map(([k, a, b, c]) => `<button class="gb ${c}" data-h="k:${k}"><span class="mt">${a}</span><small>${b}</small></button>`).join('');
     } else {
@@ -547,7 +579,8 @@
     const b = e.target.closest('button'); if (!b) return;
     se('btn');
     const h = b.dataset.h;
-    if (h === 'help' || h === 'chal') { G.mode = h; return showHome(h === 'chal' ? 'kind' : 'level'); }
+    if (h === 'help' || h === 'chal') { G.mode = h; return showHome(h === 'chal' ? 'size' : 'level'); }
+    if (h.startsWith('s:')) { G.size = h.slice(2); return showHome('kind'); }
     if (h.startsWith('k:')) { G.kind = h.slice(2); return showHome('level'); }
     if (h.startsWith('l:')) {
       G.lv = h.slice(2);
@@ -555,7 +588,7 @@
       $('home').hidden = true; resetAll();
     }
   });
-  $('hBack').onclick = () => { se('btn'); showHome(hPage === 'level' && G.mode === 'chal' ? 'kind' : 'mode'); };
+  $('hBack').onclick = () => { se('btn'); showHome(hPage === 'level' && G.mode === 'chal' ? 'kind' : hPage === 'kind' ? 'size' : 'mode'); };
 
   // ---- アシスト（すこし・なし） ----
   let lastAssist = null;
@@ -580,15 +613,44 @@
   const svgW = s => `<svg class="asv" viewBox="0 0 1000 236">${s}</svg>`;
   const lines = (arr) => arr.map((t, i) => gd(.7 + i * 1.1, T(470, [56, 108, 160, 212][i], t, { fs: 38 }))).join('');
   // 式と さくらんぼ（si＝わける数の ばしょ、gi＝10を つくる ほう）
-  function cherry(toks, si, L, Rv, gi) {
+  function cherry(toks, si, L, Rv, gi, more) {
     const X = [100, 200, 300];
     let s = toks.map((t, i) => T(X[i], 98, t, { fs: 76, a: 'middle' })).join('');
-    const sx = X[si], cL = sx - 56, cR = sx + 56;
-    const circ = (cx, v, col, d) => gd(d, `<circle cx="${cx}" cy="190" r="36" fill="${col === GRN ? '#d3f9d8' : '#ffe3e3'}" stroke="${col}" stroke-width="4"/>` + T(cx, 204, v, { a: 'middle', c: col, fs: 40 }));
-    const ln = (x2, d) => `<line class="dr" style="animation-delay:${d}s" x1="${sx}" y1="112" x2="${x2}" y2="158" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`;
-    s += ln(cL, .3) + ln(cR, .3) + circ(cL, L, RED, .7) + circ(cR, Rv, RED, .7);
-    if (gi != null) s += circ(gi === 0 ? cL : cR, gi === 0 ? L : Rv, GRN, 1.8);
+    const circ = (cx, v, col, d) => gd(d, `<circle cx="${cx}" cy="190" r="36" fill="${col === GRN ? '#d3f9d8' : '#ffe3e3'}" stroke="${col}" stroke-width="4"/>` + T(cx, 204, v, { a: 'middle', c: col, fs: String(v).length > 2 ? 30 : 40 }));
+    [[si, L, Rv, gi], ...(more || [])].forEach(([k, l, r, g], n) => {
+      const sx = X[k], cL = sx - 56, cR = sx + 56, d = n * .5;
+      const ln = (x2) => `<line class="dr" style="animation-delay:${.3 + d}s" x1="${sx}" y1="112" x2="${x2}" y2="158" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`;
+      s += ln(cL) + ln(cR) + circ(cL, l, RED, .7 + d) + circ(cR, r, RED, .7 + d);
+      if (g != null) s += circ(g === 0 ? cL : cR, g === 0 ? l : r, GRN, 1.8 + d);
+    });
     return s;
+  }
+  // 2けたの アシスト
+  function bigAssist(a) {
+    const p = a.p, x = p.a, y = p.b, ans = p.ans, PL = '＋', MI = '−';
+    const A = Math.floor(x / 10) * 10, ua = x % 10, B = Math.floor(y / 10) * 10, vb = y % 10;
+    const carry = p.op === '+' ? ua + vb >= 10 : vb > ua;
+    const sA = x >= 10 && ua > 0, sB = y >= 10 && vb > 0, tk = [x, p.op === '+' ? PL : MI, y];
+    if (a.big === 'make' && carry && ua > 0) {
+      if (p.op === '+') { const t = A + 10, need = 10 - ua, rest = y - need; return { title: 'なんじゅうを つくろう', body: svgW(cherry(tk, 2, need, rest, 0) + lines([`${y}を ${R_(need)}と ${R_(rest)}に わける`, `${x}＋${G_(need)}＝${G_(t)}`, `${G_(t)}＋${R_(rest)}＝${ans}`])) }; }
+      const r2 = y - ua; return { title: 'なんじゅうを つくろう', body: svgW(cherry(tk, 2, ua, r2, 0) + lines([`${y}を ${R_(ua)}と ${R_(r2)}に わける`, `${x}−${G_(ua)}＝${G_(A)}`, `${G_(A)}−${R_(r2)}＝${ans}`])) };
+    }
+    if (!sA && !sB) return { title: '10の まとまりで かんがえよう', body: svgW(T(100, 120, `${x}${tk[1]}${y}`, { fs: 64 }) + lines([`10が ${A / 10}こと ${B / 10}こ`, p.op === '+' ? 'あわせて いくつ？' : 'のこりは いくつ？'])) };
+    if (p.op === '+') {
+      const ch = sA && sB ? cherry(tk, 0, A, ua, null, [[2, B, vb, null]]) : sA ? cherry(tk, 0, A, ua, null) : cherry(tk, 2, B, vb, null);
+      const L = [];
+      if (A && B) L.push(`${G_(A)}＋${G_(B)}＝${A + B}`);
+      if (ua && vb) L.push(`${R_(ua)}＋${R_(vb)}＝${ua + vb}`);
+      if (A + B && ua + vb) L.push(`${A + B}＋${ua + vb}＝${ans}`);
+      return { title: '10と ばらに わけよう', body: svgW(ch + lines(L)) };
+    }
+    const aT = carry ? A - 10 : A, aU = carry ? 10 + ua : ua;
+    const ch = (sA || carry) && sB ? cherry(tk, 0, aT, aU, null, [[2, B, vb, null]]) : (sA || carry) ? cherry(tk, 0, aT, aU, null) : cherry(tk, 2, B, vb, null);
+    const L = carry ? [`${x}を ${G_(aT)}と ${R_(aU)}に わける`] : [];
+    if (B) L.push(`${G_(aT)}−${G_(B)}＝${aT - B}`);
+    if (vb) L.push(`${R_(aU)}−${R_(vb)}＝${aU - vb}`);
+    if (aT - B > 0 && aU - vb > 0) L.push(`${aT - B}＋${aU - vb}＝${ans}`);
+    return { title: '10と ばらに わけよう', body: svgW(ch + lines(L.slice(-4))) };
   }
   function blocksSvg(nb, np, nx) {
     // nb＝青、np＝ピンク、nx＝とる（うしろから）
@@ -608,6 +670,7 @@
   function assistView(a) {
     const p = a.p, x = p.a, y = p.b, ans = p.ans, u = x % 10, PL = '＋', MI = '−';
     let s = '', title = 'さくらんぼ けいさん';
+    if (p.cls === 'A2' || p.cls === 'S2') return bigAssist(a);
     switch (p.cls) {
       case 'add1':
         if (a.split === 'front') { const need = 10 - y, rest = x - need; s = cherry([x, PL, y], 0, rest, need, 1) + lines([`${x}を ${R_(need)}と ${R_(rest)}に わける`, `${y}＋${G_(need)}＝${G_(10)}`, `${G_(10)}＋${R_(rest)}＝${ans}`]); }
